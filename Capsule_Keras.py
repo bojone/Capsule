@@ -2,35 +2,41 @@
 
 from keras import backend as K
 from keras.engine.topology import Layer
+from keras.layers import Activation
+
+def squashing(x, axis=-1):
+    s_squared_norm = K.sum(K.square(x), axis, keepdims=True) + K.epsilon()
+    scale = K.sqrt(s_squared_norm)/ (0.5 + s_squared_norm)
+    return scale * x
+
 
 #A Capsule Implement with Pure Keras
 class Capsule(Layer):
-    def __init__(self, num_capsule, dim_capsule, routings=3, share_weights=True, **kwargs):
+    def __init__(self, num_capsule, dim_capsule, routings=3, share_weights=True, activation='default', **kwargs):
         super(Capsule, self).__init__(**kwargs)
         self.num_capsule = num_capsule
         self.dim_capsule = dim_capsule
         self.routings = routings
         self.share_weights = share_weights
-
-    def squashing(self, x, axis=-1):
-        s_squared_norm = K.sum(K.square(x), axis, keepdims=True) + K.epsilon()
-        scale = K.sqrt(s_squared_norm)/ (0.5 + s_squared_norm)
-        return scale * x
+        if activation == 'default':
+            self.activation = squashing
+        else:
+            self.activation = Activation(activation)
 
     def build(self, input_shape):
         super(Capsule, self).build(input_shape)
-        self.input_dim_capsule = input_shape[-1]
+        input_dim_capsule = input_shape[-1]
         if self.share_weights:
             self.W = self.add_weight(name='capsule_kernel',
-                                     shape=(1, self.input_dim_capsule,
+                                     shape=(1, input_dim_capsule,
                                             self.num_capsule * self.dim_capsule),
                                      initializer='glorot_uniform',
                                      trainable=True)
         else:
-            self.input_num_capsule = input_shape[-2]
+            input_num_capsule = input_shape[-2]
             self.W = self.add_weight(name='capsule_kernel',
-                                     shape=(self.input_num_capsule,
-                                            self.input_dim_capsule,
+                                     shape=(input_num_capsule,
+                                            input_dim_capsule,
                                             self.num_capsule * self.dim_capsule),
                                      initializer='glorot_uniform',
                                      trainable=True)
@@ -54,7 +60,7 @@ class Capsule(Layer):
             c = K.softmax(b)
             c = K.permute_dimensions(c, (0, 2, 1))
             b = K.permute_dimensions(b, (0, 2, 1))
-            outputs = self.squashing(K.batch_dot(c, u_hat_vecs, [2, 2]))
+            outputs = self.activation(K.batch_dot(c, u_hat_vecs, [2, 2]))
             if i < self.routings - 1:
                 b = K.batch_dot(outputs, u_hat_vecs, [2, 3])
 
