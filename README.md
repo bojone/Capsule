@@ -7,3 +7,5 @@
 3、其次我通过K.conv1d实现了共享参数版的；
 
 4、代码要在Keras 2.1.0以上版本运行。
+
+http://kexue.fm/archives/4819/
