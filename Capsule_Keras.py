@@ -22,7 +22,7 @@ class Capsule(Layer):
         self.input_dim_capsule = input_shape[-1]
         if self.share_weights:
             self.W = self.add_weight(name='capsule_kernel',
-                                     shape=(1, input_shape[-1],
+                                     shape=(1, self.input_dim_capsule,
                                             self.num_capsule * self.dim_capsule),
                                      initializer='glorot_uniform',
                                      trainable=True)
@@ -30,7 +30,7 @@ class Capsule(Layer):
             self.input_num_capsule = input_shape[-2]
             self.W = self.add_weight(name='capsule_kernel',
                                      shape=(self.input_num_capsule,
-                                            input_shape[-1],
+                                            self.input_dim_capsule,
                                             self.num_capsule * self.dim_capsule),
                                      initializer='glorot_uniform',
                                      trainable=True)
