@@ -10,6 +10,12 @@ def squash(x, axis=-1):
     return scale * x
 
 
+#define our own softmax function instead of K.softmax
+def softmax(x, axis=-1):
+    ex = K.exp(x - K.max(x, axis=axis, keepdims=True))
+    return ex/K.sum(ex, axis=axis, keepdims=True)
+
+
 #A Capsule Implement with Pure Keras
 class Capsule(Layer):
     def __init__(self, num_capsule, dim_capsule, routings=3, share_weights=True, activation='default', **kwargs):
@@ -56,10 +62,7 @@ class Capsule(Layer):
 
         b = K.zeros_like(u_hat_vecs[:,:,:,0]) #shape = [None, num_capsule, input_num_capsule]
         for i in range(self.routings):
-            b = K.permute_dimensions(b, (0, 2, 1)) #shape = [None, input_num_capsule, num_capsule]
-            c = K.softmax(b)
-            c = K.permute_dimensions(c, (0, 2, 1))
-            b = K.permute_dimensions(b, (0, 2, 1))
+            c = softmax(b)
             outputs = self.activation(K.batch_dot(c, u_hat_vecs, [2, 2]))
             if i < self.routings - 1:
                 b = K.batch_dot(outputs, u_hat_vecs, [2, 3])
