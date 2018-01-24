@@ -4,7 +4,7 @@ from keras import backend as K
 from keras.engine.topology import Layer
 from keras.layers import Activation
 
-def squashing(x, axis=-1):
+def squash(x, axis=-1):
     s_squared_norm = K.sum(K.square(x), axis, keepdims=True) + K.epsilon()
     scale = K.sqrt(s_squared_norm)/ (0.5 + s_squared_norm)
     return scale * x
@@ -19,7 +19,7 @@ class Capsule(Layer):
         self.routings = routings
         self.share_weights = share_weights
         if activation == 'default':
-            self.activation = squashing
+            self.activation = squash
         else:
             self.activation = Activation(activation)
 
