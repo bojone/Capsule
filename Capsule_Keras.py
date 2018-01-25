@@ -62,7 +62,7 @@ class Capsule(Layer):
 
         b = K.zeros_like(u_hat_vecs[:,:,:,0]) #shape = [None, num_capsule, input_num_capsule]
         for i in range(self.routings):
-            c = softmax(b)
+            c = softmax(b, 1)
             outputs = self.activation(K.batch_dot(c, u_hat_vecs, [2, 2]))
             if i < self.routings - 1:
                 b = K.batch_dot(outputs, u_hat_vecs, [2, 3])
