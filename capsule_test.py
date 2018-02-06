@@ -81,7 +81,7 @@ cnn = Conv2D(128, (3, 3), activation='relu')(cnn)
 cnn = Conv2D(128, (3, 3), activation='relu')(cnn)
 cnn = Reshape((-1, 128))(cnn)
 capsule = Capsule(10, 16, 3, True)(cnn)
-output = Lambda(lambda x: K.sqrt(K.sum(K.square(x), 2)))(capsule)
+output = Lambda(lambda x: K.sqrt(K.sum(K.square(x), 2)), output_shape=(10,))(capsule)
 
 model = Model(inputs=input_image, outputs=output)
 model.compile(loss=lambda y_true,y_pred: y_true*K.relu(0.9-y_pred)**2 + 0.25*(1-y_true)*K.relu(y_pred-0.1)**2,
