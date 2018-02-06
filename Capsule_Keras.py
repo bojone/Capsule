@@ -2,7 +2,6 @@
 
 from keras import backend as K
 from keras.engine.topology import Layer
-from keras.layers import Activation
 
 def squash(x, axis=-1):
     s_squared_norm = K.sum(K.square(x), axis, keepdims=True) + K.epsilon()
@@ -27,7 +26,8 @@ class Capsule(Layer):
         if activation == 'default':
             self.activation = squash
         else:
-            self.activation = Activation(activation)
+            self.activation = activation
+        print self.activation
 
     def build(self, input_shape):
         super(Capsule, self).build(input_shape)
@@ -63,11 +63,16 @@ class Capsule(Layer):
         b = K.zeros_like(u_hat_vecs[:,:,:,0]) #shape = [None, num_capsule, input_num_capsule]
         for i in range(self.routings):
             c = softmax(b, 1)
-            outputs = self.activation(K.batch_dot(c, u_hat_vecs, [2, 2]))
+            o = K.batch_dot(c, u_hat_vecs, [2, 2])
+            if K.backend() == 'theano':
+                o = K.sum(o, axis=1)
+            o = self.activation(o)
             if i < self.routings - 1:
-                b = K.batch_dot(outputs, u_hat_vecs, [2, 3])
+                b = K.batch_dot(o, u_hat_vecs, [2, 3])
+                if K.backend() == 'theano':
+                    b = K.sum(b, axis=1)
 
-        return outputs
+        return o
 
     def compute_output_shape(self, input_shape):
         return (None, self.num_capsule, self.dim_capsule)
