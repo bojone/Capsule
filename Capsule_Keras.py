@@ -64,12 +64,14 @@ class Capsule(Layer):
         b = K.zeros_like(u_hat_vecs[:,:,:,0]) #shape = [None, num_capsule, input_num_capsule]
         for i in range(self.routings):
             c = softmax(b, 1)
-            o = K.batch_dot(c, u_hat_vecs, [2, 2])
+            # o = K.batch_dot(c, u_hat_vecs, [2, 2])
+            o = tf.einsum('bin,binj->bij', c, u_hat_vecs)
             if K.backend() == 'theano':
                 o = K.sum(o, axis=1)
             if i < self.routings - 1:
                 o = K.l2_normalize(o, -1)
-                b = K.batch_dot(o, u_hat_vecs, [2, 3])
+                # b = K.batch_dot(o, u_hat_vecs, [2, 3])
+                b = tf.einsum('bij,binj->bin', o, u_hat_vecs)
                 if K.backend() == 'theano':
                     b = K.sum(b, axis=1)
 
